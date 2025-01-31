@@ -93,13 +93,13 @@ def write_auth_token(access_token: str, filename: str) -> None:
         raise
 
 def get_authentication_link(credentials: dict) -> str:
-    """Generate authentication link.
+    """Generate Authentication link.
     
     Args:
         credentials (dict): Dictionary of API credentials.
     
     Returns:
-        str: The link which is to be used for authentication.
+        str: The link which is to be used for Authentication.
     """
     try:
         session = fyersModel.SessionModel(
@@ -109,10 +109,10 @@ def get_authentication_link(credentials: dict) -> str:
             response_type=credentials["ResponseType"]
         )
         auth_link = session.generate_authcode()
-        logging.info(f"Successfully generated Authorization link.")
+        logging.info(f"Successfully generated Authentication link.")
         return auth_link
     except Exception as e:
-        logging.error(f"Error generating Authorization link: {e}")
+        logging.error(f"Error generating Authentication link: {e}")
         raise
 
 def extract_auth_code(uri: str) -> str:
