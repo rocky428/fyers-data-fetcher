@@ -1,0 +1,6 @@
+{
+   "ScriptName":"NSE:NIFTY50-INDEX",
+   "Resolution":"D",
+   "StartDate":"01-01-2025",
+   "EndDate":"28-01-2025"
+}
