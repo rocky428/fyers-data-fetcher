@@ -56,30 +56,30 @@ def read_data_parameters_file(filename: str) -> dict:
         logging.info(f"Error reading {filename}: {e}")
         raise
 
-def read_auth_token(filename: str) -> str:
-    """Read authentication token from a file.
+def read_access_token(filename: str) -> str:
+    """Read access token from a file.
     
     Args:
-        filename (str): Name of the file where the auth code is saved.
+        filename (str): Name of the file where the access token is saved.
     
     Returns:
-        str: The auth code.
+        str: The access token.
     """
     try:
         with open(filename, "r") as f:
-            auth_code = f.read().strip()
-        logging.info(f"Successfully read auth code from: {filename}.")
-        return auth_code
+            access_token = f.read().strip()
+        logging.info(f"Successfully read access token from: {filename}.")
+        return access_token
     except Exception as e:
-        logging.error(f"Auth code {filename} missing: {e}")
+        logging.error(f"Access token file {filename} missing: {e}")
         raise
 
-def write_auth_token(access_token: str, filename: str) -> None:
-    """Write authentication token to a file.
+def write_access_token(access_token: str, filename: str) -> None:
+    """Write access token to a file.
     
     Args:
         access_token (str): The access token to be written to the file.
-        filename (str): The filename to write the access token in.
+        filename (str): The filename to write the access token to.
     
     Returns:
         None.
@@ -89,7 +89,7 @@ def write_auth_token(access_token: str, filename: str) -> None:
             f.write(access_token)
         logging.info(f"Access token written to file: {filename}")
     except Exception as e:
-        logging.error(f"Error writing auth token file: {e}")
+        logging.error(f"Error writing access token to file: {e}")
         raise
 
 def get_authentication_link(credentials: dict) -> str:
@@ -119,7 +119,7 @@ def extract_auth_code(uri: str) -> str:
     """Extract authentication code from URI.
     
     Args:
-        uri (str): the redirected uri after the authentication is done by user on webpage.
+        uri (str): The redirected uri after the authentication is done by user on webpage.
     
     Returns:
         str: The extracted auth code from the uri.
@@ -259,14 +259,14 @@ def main():
     data_parameters = read_data_parameters_file(DATA_PARAMETERS_FILE)
     response = input("Do you have an access token? (y/n): ")
     if response == "y":
-        access_token = read_auth_token(ACCESS_TOKEN_FILE)
+        access_token = read_access_token(ACCESS_TOKEN_FILE)
     else:
         auth_link = get_authentication_link(credentials)
         logging.info(f"Open the following link in your browser and authenticate: {auth_link}")
         auth_uri = input("Enter the redirected URI: ")
         auth_code = extract_auth_code(auth_uri)
         access_token = generate_access_token(credentials, auth_code)
-        write_auth_token(access_token, ACCESS_TOKEN_FILE)
+        write_access_token(access_token, ACCESS_TOKEN_FILE)
     session = create_fyers_session(credentials, access_token)
     df = fetch_historical_data(session, data_parameters["ScriptName"], data_parameters["Resolution"], data_parameters["StartDate"], data_parameters["EndDate"])
     if not df.empty:
