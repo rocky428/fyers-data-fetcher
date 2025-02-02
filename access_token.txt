@@ -1,0 +1,1 @@
+Your access token is written to this file upon authentication when you run the fyers_data_fetcher script.

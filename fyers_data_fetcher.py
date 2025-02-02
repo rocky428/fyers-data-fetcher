@@ -1,14 +1,16 @@
 import json
+import logging.config
 import numpy as np
 import pandas as pd
 import logging
 import datetime as dt
 import os
 from fyers_apiv3 import fyersModel
+import authentication_handler as auth_hand
 
-API_CRED_FILE = "api_cred.json"
-DATA_PARAMETERS_FILE = "data_parameters.json"
-ACCESS_TOKEN_FILE = "access_token.txt"
+API_CRED_FNAME = "api_cred.json"
+DATA_PARAMETERS_FNAME = "data_parameters.json"
+ACCESS_TOKEN_FNAME = "access_token.txt"
 
 # Data retrieval limits for Fyers API
 DATA_LIMIT_DAYS = {"1": 100, "5": 100, "15": 100, "30": 100, "45": 100, "60": 100, "D": 365}
@@ -18,7 +20,9 @@ SAVE_TO_FOLDER = "downloaded_data"
 
 os.makedirs(SAVE_TO_FOLDER, exist_ok=True)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# Configure logging
+logging.config.fileConfig("log.conf")
+logger_main = logging.getLogger("main")
 
 def read_json_file(filename: str) -> dict:
     """Read API Crendentials from JSON file.
@@ -50,10 +54,10 @@ def read_data_parameters_file(filename: str) -> dict:
     try:
         with open(filename, "r") as f:
             data_parameters = json.load(f)
-        logging.info(f"Successfully read {filename}.")
+        logger_main.info(f"Successfully read {filename}.")
         return data_parameters
     except Exception as e:
-        logging.info(f"Error reading {filename}: {e}")
+        logger_main.info(f"Error reading {filename}: {e}")
         raise
 
 def read_access_token(filename: str) -> str:
@@ -68,10 +72,10 @@ def read_access_token(filename: str) -> str:
     try:
         with open(filename, "r") as f:
             access_token = f.read().strip()
-        logging.info(f"Successfully read access token from: {filename}.")
+        logger_main.info(f"Successfully read access token from: {filename}.")
         return access_token
     except Exception as e:
-        logging.error(f"Access token file {filename} missing: {e}")
+        logger_main.error(f"Access token file {filename} missing: {e}")
         raise
 
 def write_access_token(access_token: str, filename: str) -> None:
@@ -87,9 +91,9 @@ def write_access_token(access_token: str, filename: str) -> None:
     try:
         with open(filename, "w") as f:
             f.write(access_token)
-        logging.info(f"Access token written to file: {filename}")
+        logger_main.info(f"Access token written to file: {filename}")
     except Exception as e:
-        logging.error(f"Error writing access token to file: {e}")
+        logger_main.error(f"Error writing access token to file: {e}")
         raise
 
 def get_authentication_link(credentials: dict) -> str:
@@ -109,10 +113,10 @@ def get_authentication_link(credentials: dict) -> str:
             response_type=credentials["ResponseType"]
         )
         auth_link = session.generate_authcode()
-        logging.info(f"Successfully generated Authentication link.")
+        logger_main.info(f"Successfully generated Authentication link.")
         return auth_link
     except Exception as e:
-        logging.error(f"Error generating Authentication link: {e}")
+        logger_main.error(f"Error generating Authentication link: {e}")
         raise
 
 def extract_auth_code(uri: str) -> str:
@@ -126,10 +130,10 @@ def extract_auth_code(uri: str) -> str:
     """
     try:
         auth_code = uri.split("auth_code=")[1].split("&")[0]
-        logging.info(f"Successfully extracted the auth code.")
+        logger_main.info(f"Successfully extracted the auth code.")
         return auth_code
     except Exception as e:
-        logging.error(f"Error extracting auth code: {e}")
+        logger_main.error(f"Error extracting auth code: {e}")
         raise
 
 def generate_access_token(credentials: dict, auth_code: str) -> str:
@@ -152,10 +156,10 @@ def generate_access_token(credentials: dict, auth_code: str) -> str:
         )
         session.set_token(auth_code)
         access_token =  session.generate_token()["access_token"]
-        logging.info(f"Successfully generated authentication token.")
+        logger_main.info(f"Successfully generated access token.")
         return access_token
     except Exception as e:
-        logging.error(f"Error generating access token: {e}")
+        logger_main.error(f"Error generating access token: {e}")
         raise
 
 def create_fyers_session(credentials: dict, access_token: str) -> fyersModel.FyersModel:
@@ -171,7 +175,7 @@ def create_fyers_session(credentials: dict, access_token: str) -> fyersModel.Fye
     try:
         return fyersModel.FyersModel(client_id = credentials["ClientID"], is_async = False, token = access_token, log_path = "")
     except Exception as e:
-        logging.error(f"Error creating session: {e}")
+        logger_main.error(f"Error creating session: {e}")
         raise
 
 def format_historical_prices(candle_data: np.ndarray) -> pd.DataFrame:
@@ -229,12 +233,12 @@ def fetch_historical_data(session: fyersModel.FyersModel, symbol: str, resolutio
             response = session.history({"symbol": symbol, "resolution": resolution, "date_format": "1", "range_from": start, "range_to": end})
             if response["candles"]:
                 all_data.append(np.array(response["candles"]))
-                logging.info(f"Fetched data: {start} to {end}")
+                logger_main.info(f"Fetched data: {start} to {end}")
             else:
                 raise Exception(f"Data not available for {start} to {end}")
         return format_historical_prices(np.vstack(all_data)) if all_data else pd.DataFrame()
     except Exception as e:
-        logging.error(f"Error fetching historical data: {e}")
+        logger_main.error(f"Error fetching historical data: {e}")
         raise
 
 def save_data_to_csv(df: pd.DataFrame, filename: str) -> None:
@@ -248,32 +252,32 @@ def save_data_to_csv(df: pd.DataFrame, filename: str) -> None:
     """
     try:
         df.to_csv(os.path.join(SAVE_TO_FOLDER, filename), index=False)
-        logging.info(f"Data saved: {os.path.join(SAVE_TO_FOLDER, filename)}")
+        logger_main.info(f"Data saved: {os.path.join(SAVE_TO_FOLDER, filename)}")
     except Exception as e:
-        logging.error(f"Error saving data: {e}")
+        logger_main.error(f"Error saving data: {e}")
         raise
 
 def main():
     """The main method which is used to fetch the historical data."""
-    credentials = read_json_file(API_CRED_FILE)
-    data_parameters = read_data_parameters_file(DATA_PARAMETERS_FILE)
+    credentials = read_json_file(API_CRED_FNAME)
+    data_parameters = read_data_parameters_file(DATA_PARAMETERS_FNAME)
     response = input("Do you have an access token? (y/n): ")
     if response == "y":
-        access_token = read_access_token(ACCESS_TOKEN_FILE)
+        access_token = read_access_token(ACCESS_TOKEN_FNAME)
     else:
         auth_link = get_authentication_link(credentials)
-        logging.info(f"Open the following link in your browser and authenticate: {auth_link}")
-        auth_uri = input("Enter the redirected URI: ")
-        auth_code = extract_auth_code(auth_uri)
+        logger_main.info(f"Open the following link in your browser and authenticate: {auth_link}")
+        port = int(credentials["RedirectURI"].split(":")[-1])
+        auth_code = auth_hand.run_local_server(port) # start a local server and keep listening for redirection
         access_token = generate_access_token(credentials, auth_code)
-        write_access_token(access_token, ACCESS_TOKEN_FILE)
+        write_access_token(access_token, ACCESS_TOKEN_FNAME)
     session = create_fyers_session(credentials, access_token)
     df = fetch_historical_data(session, data_parameters["ScriptName"], data_parameters["Resolution"], data_parameters["StartDate"], data_parameters["EndDate"])
     if not df.empty:
         filename = f"{data_parameters['ScriptName'].split(':')[1]}_{data_parameters['Resolution']}_{data_parameters['StartDate']}_to_{data_parameters['EndDate']}.csv"
         save_data_to_csv(df, filename)
     else:
-        logging.warning("No data retrieved.")
+        logger_main.warning("No data retrieved.")
 
 if __name__ == "__main__":
     main()
