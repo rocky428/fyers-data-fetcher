@@ -11,10 +11,15 @@ This script fetches historical market data from the Fyers API using user-provide
 - Saves fetched data as a CSV file
 
 ## Prerequisites
-Before running the script, ensure you have the following:
-- Python 3.x installed
-- Required dependencies installed (see Installation section)
-- A valid Fyers API account with API credentials
+To get started, you must have an account with Fyers. Once you have an account, you need to create an app to obtain API credentials.
+ - Log in to Fyers API Portal <https://myapi.fyers.in/>.
+ - Go to the Dashboard section and click on Create App.
+- Fill in the required app details as shown in the screenshot below:
+![Illustration of Fyers App Creation](illustration_fyers_app.png)
+
+Ensure that the redirect URI is set to http://127.0.0.1:5000 (the Python script sets up a temporary local server to capture the authentication code).
+
+Once the app is created, you will receive an App ID and Secret ID, which are necessary for the Python script to connect to the Fyers API.
 
 ## Installation
 
@@ -32,10 +37,6 @@ Before running the script, ensure you have the following:
     ```sh
     pip install numpy pandas fyers-apiv3
     ```
-6. Create the following necessary files in the project directory:
-    - `api_cred.json` (containing API credentials)
-    - `data_parameters.json` (containing historical data fetch parameters)
-    - `access_token.txt` (optional, stores the access token)
 
 ## Configuration
 ### `api_cred.json`
@@ -68,9 +69,10 @@ Specify the market data request parameters:
     ```sh
     python ./fyers_data_fetcher.py
     ```
-2. If you have an access token, enter 'y' when prompted, otherwise enter 'n'.
-3. If authentication is required, follow the on-screen instructions to generate an authentication link, authorize it in a browser, and provide the redirected URI.
-4. The script will fetch the requested historical data and save it as a CSV file in the `downloaded_data` folder.
+2. If you have a valid access token for the day which is saved in the file **access_token.txt** , enter 'y' when prompted.
+3. Or else ff you do not have an access token or if the access token is expired because you are running the script on an another day, then type 'n' when promted for access token availability. Follow the on-screen instructions and copy the created authentication link and open it in a browser. You will be asked to login to Fyers to authenticate yourself.
+4. Once you authenticate, you will be redirected to a local server page. You just need to close this. The script automatically copy the generated auth code and then generates an access token which is valid for the day and save it to the file **accees_token.txt**.
+4. Then the script will fetch the requested historical data and save it as a CSV file in the `downloaded_data` folder.
 
 ## Output
 The script will generate a CSV file in the format:
