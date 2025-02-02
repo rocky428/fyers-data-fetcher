@@ -19,11 +19,20 @@ Before running the script, ensure you have the following:
 ## Installation
 
 1. Clone the repository or download the script.
-2. Install the required dependencies using pip:
+2. Navigate to the cloned respository using:
+   ```sh
+   cd fyers-data-fetcher
+   ```
+3. Create a virtual environment and activate it using:
+   ```sh
+   python3 -m venv .fyers_venv
+   source .fyers_venv/bin/activate
+   ```
+5. Now install the required dependencies in the created **fyers_venv** using pip:
     ```sh
     pip install numpy pandas fyers-apiv3
     ```
-3. Create the following necessary files in the project directory:
+6. Create the following necessary files in the project directory:
     - `api_cred.json` (containing API credentials)
     - `data_parameters.json` (containing historical data fetch parameters)
     - `access_token.txt` (optional, stores the access token)
