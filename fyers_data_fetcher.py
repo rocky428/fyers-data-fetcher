@@ -189,6 +189,8 @@ def format_historical_prices(candle_data: np.ndarray) -> pd.DataFrame:
     """
     df = pd.DataFrame(candle_data, columns=["date_time", "open", "high", "low", "close", "volume"])
     df["date_time"] = pd.to_datetime(df["date_time"], unit="s")
+    df["date_time"] = df["date_time"].dt.tz_localize('utc').dt.tz_convert('Asia/Kolkata')
+    df["date_time"] = df["date_time"].dt.tz_localize(None)
     df["volume"] = df["volume"].astype(int)
     return df
 
