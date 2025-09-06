@@ -13,7 +13,7 @@ DATA_PARAMETERS_FNAME = "data_parameters.json"
 ACCESS_TOKEN_FNAME = "access_token.txt"
 
 # Data retrieval limits for Fyers API
-DATA_LIMIT_DAYS = {"1": 100, "5": 100, "15": 100, "30": 100, "45": 100, "60": 100, "D": 365}
+DATA_LIMIT_DAYS = {"5S":100, "10S":100, "15S":100, "30S":100, "45S":100, "1": 100, "5": 100, "15": 100, "30": 100, "45": 100, "60": 100, "D": 365}
 
 # Paths to save fetched data
 SAVE_TO_FOLDER = "downloaded_data"
