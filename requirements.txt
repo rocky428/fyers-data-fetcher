@@ -1,0 +1,1 @@
+pip install websocket-client fyers-apiv3 pandas numpy
