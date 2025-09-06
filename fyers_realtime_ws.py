@@ -6,8 +6,8 @@ Brian Pinto – MIT licence
 """
 
 import json, time, threading, signal, sys
-import websocket          # pip install websocket-client
-
+import websocket  # pip install websocket-client
+import ssl        
 # ---------- config ----------------------------------------------------------
 CRED_FILE        = "api_cred.json"          # same file used by historical fetcher
 TOKEN_FILE       = "access_token.txt"       # created after 1st login
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, _sigint)
 
     client_id, _, _ = _load_creds()
-    access_token    = _load_token()
+    access_token = _load_token()
 
     ws_url = ("wss://api.fyers.in/socket/v3/data?"
               f"access_token={client_id}:{access_token}")
@@ -77,9 +77,5 @@ if __name__ == "__main__":
                                 on_error=_on_error,
                                 on_close=_on_close)
 
-    # run forever in a thread so we can catch Ctrl-C cleanly
-    wst = threading.Thread(target=ws.run_forever, daemon=True)
-    wst.start()
-
-    while wst.is_alive():
-        time.sleep(1)
+    # run forever with SSL verification disabled (dev only)
+    ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
